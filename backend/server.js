@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const supabase = require('./supabase');
+const authMiddleware = require('./middleware/authMiddleware');
 const app = express();
 const port = 3000;
 
@@ -87,6 +88,13 @@ app.post('/api/auth/login', async (req, res) => {
 
     return res.status(200).json({ message: 'User logged in successfully' });
 });
+
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+    res.json({
+        message: 'Authenticated successfully',
+        userId: req.user.id
+    });
+})
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
