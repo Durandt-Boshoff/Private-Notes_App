@@ -96,6 +96,67 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
     });
 })
 
+app.get('/api/notes', authMiddleware, async (req, res) => {
+    const { data, error } = await req.supabase
+        .from('notes')
+        .select('*');
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json(data);
+})
+
+app.post('/api/notes', authMiddleware, async (req, res) => {
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+        return res.status(400).json({ error: 'Title and content are required' });
+    }
+
+    const { data, error } = await req.supabase
+        .from('notes')
+        .insert([
+            {
+                user_id: req.user.id,
+                title,
+                content
+            }
+        ])
+        .select();
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(201).json(data);
+});
+
+app.put('/api/notes/:id', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+        return res.status(400).json({ error: 'Title and content are required' });
+    }
+
+    const { data, error } = await req.supabase
+        .from('notes')
+        .update({ 
+            title,
+            content
+        })
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json(data);
+});
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 })
