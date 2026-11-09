@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -13,53 +11,22 @@ import CreateNoteCard from "../components/createNoteCard";
 import NoteEditor from "../components/noteEditor";
 
 
-function Home() {
+function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash}) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
 
-    const [notes, setNotes] = useState([
-        {
-            id: 1,
-            title: "Game Idea",
-            content: "I want to explore a new story concept involving an eclipse and two opposing gods.",
-            date: "Today",
-            color: "#f3e0de"
-        },
-        {
-            id: 2,
-            title: "Project Ideas",
-            content: "Look into some ideas for future projects and experiments with React.",
-            date: "Yesterday",
-            color: "#e9e2f2"
-        },
-        {
-            id: 3,
-            title: "Things to Remember",
-            content: "Don't forget to finish the dashboard design before moving on to the backend.",
-            date: "Nov 7",
-            color: "#e3ebdd"
-        },
-        {
-            id: 4,
-            title: "Weekend Plans",
-            content: "Work on Private Notes and maybe spend some time working on a game.",
-            date: "Nov 6",
-            color: "#dfeaf2"
-        }
-    ]);
+    const filteredNotes = notes.filter((note) => {
+        const search = searchTerm.toLowerCase();
 
-    const handleSaveNote = (newNote) => {
-        const noteWithDetails = {
-            id: Date.now(),
-            ...newNote,
-            date: new Date().toLocaleDateString()
-        };
-        
-        setNotes((previousNotes) => [
-            ...previousNotes,
-            noteWithDetails
-        ]);
-    };
+        return (
+            !note.isTrashed &&
+            (
+                note.title.toLowerCase().includes(search) ||
+                note.content.toLowerCase().includes(search)
+            )
+        );
+    });
 
     return (
         <div className="flex min-h-screen bg-[#fbf8f4]">
@@ -92,17 +59,57 @@ function Home() {
                     </h1>
                 </header>
 
+                <div className="flex flex-col gap-6 mb-8">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-[#5f5651]">
+                            My Notes
+                        </h1>
+                        <p className="text-sm text-[#5f5651]">
+                            A little space for your thoughts.
+                        </p>
+                    </div>
+
+                    <div className="mx-auto flex w-full max-w-md items-center gap-3 rounded-xl border border-[#e9e1d8] bg-white px-4 py-3">
+                        <FontAwesomeIcon
+                            icon={faMagnifyingGlass}
+                            className="text-[#8a625a]"
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Search notes..."
+                            value={searchTerm}
+                            onChange={(event) => setSearchTerm(event.target.value)}
+                            className="w-full bg-transparent text-sm text-[#5f5651] outline-none placeholder:text-[#a49a93]"
+                        />
+                    </div>
+                </div>
+
                 <section>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {notes.map((note) => (
-                            <NoteCard
-                                key={note.id}
-                                title={note.title}
-                                content={note.content}
-                                date={note.date}
-                                color={note.color}
-                            />
-                        ))}
+                        {filteredNotes.length > 0 ? (
+                            filteredNotes.map((note) => (
+                                <NoteCard
+                                    key={note.id}
+                                    title={note.title}
+                                    content={note.content}
+                                    date={note.date}
+                                    color={note.color}
+                                    isFavourite={note.isFavourite}
+                                    onToggleFavourite={() => onToggleFavourite(note.id)}
+                                    onMoveToTrash={() => onMoveToTrash(note.id)}
+                                />
+                            ))
+                        ) : (
+                            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                                <h2 className="text-lg font-semibold text-[#5f5651]">
+                                    No Notes found
+                                </h2>
+                                <p className="mt-2 text-sm text-[#8a625a]">
+                                    Try searching for something else.
+                                </p>
+                            </div>
+                        )}
                         <CreateNoteCard
                             onClick={() => setIsEditorOpen(true)}
                         />
@@ -111,7 +118,7 @@ function Home() {
                     {isEditorOpen && (
                         <NoteEditor
                             onClose={() => setIsEditorOpen(false)}
-                            onSave={handleSaveNote}
+                            onSave={onSaveNote}
                         />
                     )}
                 </section>
