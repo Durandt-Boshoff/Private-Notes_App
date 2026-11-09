@@ -15,9 +15,13 @@ const navLinkStyles = ({ isActive }) =>
             : 'text-[#6f6660] hover:bg-[#f1ebe5]'
     }`;
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
     return (
-        <aside className="w-64 min-h-screen border-r border-[#e9e1d8] bg-[#fbf8f4] flex flex-col">
+        <aside
+            className={`fixed inset-y-0 left-0 z-40 w-64 min-h-screen border-r border-[#e9e1d8] bg-[#fbf8f4] flex flex-col transform transition-transform duration-300 md:relative md:translate-x-0 ${
+                isOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+        >
             <div className="px-6 pt-6 pb-10">
                 <h1 className="text-2xl font-semibold text-[#5f5651]">
                     Private Notes
@@ -30,6 +34,7 @@ function Sidebar() {
                         to="/"
                         end
                         className={navLinkStyles}
+                        onClick={onClose}
                     >
                         <FontAwesomeIcon icon={faHome} className="w-5 h-5"/>
                         <span>Dashboard</span>
@@ -39,6 +44,7 @@ function Sidebar() {
                         to="/favourites"
                         end
                         className={navLinkStyles}
+                        onClick={onClose}
                     >
                         <FontAwesomeIcon icon={faHeart} className="w-5 h-5" />
                         <span>Favourite Notes</span>
@@ -48,6 +54,7 @@ function Sidebar() {
                         to="/trash"
                         end
                         className={navLinkStyles}
+                        onClick={onClose}
                     >
                         <FontAwesomeIcon icon={faTrash} className="w-5 h-5" />
                         <span>Trash</span>
@@ -61,11 +68,13 @@ function Sidebar() {
                         to="/profile"
                         end
                         className={navLinkStyles}
+                        onClick={onClose}
                     >
                         <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
                         <span>Profile</span>
                     </NavLink>
                     <button
+                        onClick={onClose}
                         className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[#a65f5f] hover:bg-[#f6e9e7] transition-colors"
                     >
                         <FontAwesomeIcon icon={faSignOutAlt} className="w-5 h-5" />
