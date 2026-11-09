@@ -8,7 +8,7 @@ import {
 import Sidebar from "../components/sidebar";
 import NoteCard from "../components/noteCard";
 
-function Trash({ notes, onRestoreNote, onDeleteNote, onEmptyTrash }) {
+function Trash({ notes, onRestoreNote, onDeleteNote, onEmptyTrash, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const trashedNotes = notes.filter((note) => note.isTrashed);
@@ -18,6 +18,7 @@ function Trash({ notes, onRestoreNote, onDeleteNote, onEmptyTrash }) {
             <Sidebar
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
+                onLogout={onLogout}
             />
 
             {isSidebarOpen && (

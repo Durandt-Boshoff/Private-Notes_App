@@ -57,7 +57,7 @@ function Register() {
 
             setSuccessMessage("Account created! Please check your email to confirm your account.");
         } catch (error) {
-            setError("Unable to connect to the server.");
+            setError("Unable to connect to the server.", error);
         }
     }
 

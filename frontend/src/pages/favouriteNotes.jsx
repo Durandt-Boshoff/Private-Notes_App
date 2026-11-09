@@ -8,7 +8,7 @@ import {
 import Sidebar from "../components/sidebar";
 import NoteCard from "../components/noteCard";
 
-function FavouriteNotes({ notes, onToggleFavourite, onMoveToTrash}) {
+function FavouriteNotes({ notes, onToggleFavourite, onMoveToTrash, onLogout }) {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -21,6 +21,7 @@ function FavouriteNotes({ notes, onToggleFavourite, onMoveToTrash}) {
             <Sidebar
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
+                onLogout={onLogout}
             />
 
             {isSidebarOpen && (

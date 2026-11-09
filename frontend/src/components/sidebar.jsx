@@ -15,7 +15,7 @@ const navLinkStyles = ({ isActive }) =>
             : 'text-[#6f6660] hover:bg-[#f1ebe5]'
     }`;
 
-function Sidebar({ isOpen, onClose }) {
+function Sidebar({ isOpen, onClose, onLogout }) {
     return (
         <aside
             className={`fixed inset-y-0 left-0 z-40 w-64 min-h-screen border-r border-[#e9e1d8] bg-[#fbf8f4] flex flex-col transform transition-transform duration-300 md:relative md:translate-x-0 ${
@@ -74,7 +74,10 @@ function Sidebar({ isOpen, onClose }) {
                         <span>Profile</span>
                     </NavLink>
                     <button
-                        onClick={onClose}
+                        onClick={() => {
+                            onLogout();
+                            onClose();
+                        }}
                         className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-[#a65f5f] hover:bg-[#f6e9e7] transition-colors"
                     >
                         <FontAwesomeIcon icon={faSignOutAlt} className="w-5 h-5" />

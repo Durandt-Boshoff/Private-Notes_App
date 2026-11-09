@@ -1,12 +1,77 @@
-import { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/home";
 import FavouriteNotes from "./pages/favouriteNotes";
 import Trash from "./pages/trash";
 import Register from "./pages/register";
 import Login from "./pages/login";
 
+function ProtectedRoute({ user, isLoading, children }){
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#fbf8f4] text-[#5f5651]">
+        Checking your session...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
 function App() {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const response = await fetch("http://localhost:3000/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+
+      } catch (error) {
+        console.error("Session check failed:", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkSession();
+  }, []);
+
+  async function handleLogout() {
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Logout failed.");
+        return;
+      }
+
+      setUser(null);
+
+    } catch (error) {
+      console.error("Unable to log out:", error);
+    }
+  }
+
   const [notes, setNotes] = useState([
     {
       id: 1,
@@ -107,40 +172,49 @@ function App() {
         <Route
           path="/"
           element={
-            <Home 
-              notes={notes}
-              setNotes={setNotes}
-              onSaveNote={handleSaveNote}
-              onToggleFavourite={handleToggleFavourite}
-              onMoveToTrash={handleMoveToTrash}
-            />
+            <ProtectedRoute user={user} isLoading={isLoading}>
+              <Home 
+                notes={notes}
+                setNotes={setNotes}
+                onSaveNote={handleSaveNote}
+                onToggleFavourite={handleToggleFavourite}
+                onMoveToTrash={handleMoveToTrash}
+                onLogout={handleLogout}
+              />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/favourites"
           element={
-            <FavouriteNotes
-              notes={notes}
-              onToggleFavourite={handleToggleFavourite}
-              onMoveToTrash={handleMoveToTrash}
-            />
+            <ProtectedRoute user={user} isLoading={isLoading}>
+              <FavouriteNotes
+                notes={notes}
+                onToggleFavourite={handleToggleFavourite}
+                onMoveToTrash={handleMoveToTrash}
+                onLogout={handleLogout}
+              />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/trash"
           element={
-            <Trash
-              notes={notes}
-              onRestoreNote={handleRestoreNote}
-              onDeleteNote={handleDeleteNote}
-              onEmptyTrash={() => {
-                setNotes((previousNotes) => 
-                  previousNotes.filter((note) => !note.isTrashed)
-                );
-              }}
-            />
+            <ProtectedRoute user={user} isLoading={isLoading}>
+              <Trash
+                notes={notes}
+                onRestoreNote={handleRestoreNote}
+                onDeleteNote={handleDeleteNote}
+                onEmptyTrash={() => {
+                  setNotes((previousNotes) => 
+                    previousNotes.filter((note) => !note.isTrashed)
+                  );
+                }}
+                onLogout={handleLogout}
+              />
+            </ProtectedRoute>
           }
         />
 
@@ -154,7 +228,7 @@ function App() {
         <Route
           path="/login"
           element={
-            <Login />
+            <Login onLogin={setUser}/>
           }
         />
 

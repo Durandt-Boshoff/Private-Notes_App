@@ -11,7 +11,7 @@ import CreateNoteCard from "../components/createNoteCard";
 import NoteEditor from "../components/noteEditor";
 
 
-function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash}) {
+function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -33,6 +33,7 @@ function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash}) {
             <Sidebar 
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
+                onLogout={onLogout}
             />
 
             {isSidebarOpen && (

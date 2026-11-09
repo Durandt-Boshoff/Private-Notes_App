@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import Register from "../assets/register.png";
 
-function Login() {
+function Login({ onLogin }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -45,10 +45,22 @@ function Login() {
                 return;
             }
 
+            const sessionResponse = await fetch("http://localhost:3000/api/auth/me", {
+                credentials: "include",
+            });
+
+            const sessionData = await sessionResponse.json();
+
+            if (!sessionResponse.ok) {
+                setError("Login succeeded, but we couldn't verify your session.");
+                return;
+            }
+
+            onLogin(sessionData)
             navigate("/");
 
         } catch (error) {
-            setError("Unable to connect to the server.");
+            setError("Unable to connect to the server.", error);
         }
     }
 
