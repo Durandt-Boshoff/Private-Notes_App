@@ -25,6 +25,7 @@ function ProtectedRoute({ user, isLoading, children }){
 function App() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notes, setNotes] = useState([]);
 
   useEffect(() => {
     async function checkSession() {
@@ -36,15 +37,41 @@ function App() {
 
         const data = await response.json();
 
-        if (response.ok) {
-          setUser(data);
-        } else {
+        if (!response.ok) {
           setUser(null);
+          setNotes([]);
+          return;
         }
 
+          setUser(data);
+
+          const notesResponse = await fetch("http://localhost:3000/api/notes", {
+            method: "GET",
+            credentials: "include",
+        });
+
+        if (!notesResponse.ok) {
+          throw new Error("Unable to load notes.")
+        }
+
+        const notesData = await notesResponse.json();
+
+        const formattedNotes = notesData.map((note) => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          date: new Date(note.created_at).toLocaleDateString(),
+          color: note.color,
+          isFavourite: note.is_favourite,
+          isTrashed: note.is_trashed,
+        }));
+
+        setNotes(formattedNotes);
+
       } catch (error) {
-        console.error("Session check failed:", error);
+        console.error("Session or notes loading failed:", error);
         setUser(null);
+        setNotes([]);
       } finally {
         setIsLoading(false);
       }
@@ -52,6 +79,101 @@ function App() {
 
     checkSession();
   }, []);
+
+  async function handleSaveNote(newNote) {
+    try {
+      const response = await fetch("http://localhost:3000/api/notes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          title: newNote.title,
+          content: newNote.content,
+          color: newNote.color,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Unablr to save note:", data.error);
+        return false;
+      }
+
+      const savedNote = data[0];
+
+      const formattedNote = {
+        id: savedNote.id,
+        title: savedNote.title,
+        content: savedNote.content,
+        date: new Date(savedNote.created_at).toLocaleDateString(),
+        color: savedNote.color,
+        isFavourite: savedNote.is_favourite,
+        isTrashed: savedNote.is_trashed,
+      };
+
+      setNotes((previousNotes) => [
+        ...previousNotes,
+        formattedNote,
+      ]);
+
+      return true;
+    } catch (error) {
+      console.error("Unable to connect to the server:", error);
+      return false;
+    }
+  }
+
+  async function handleUpdateNote(id, updatedNote) {
+      const note = notes.find((note) => note.id === id);
+
+      if (!note) return false;
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                title: updatedNote.title,
+                content: updatedNote.content,
+                color: updatedNote.color,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("Unable to update note:", data.error);
+            return false;
+        }
+
+        const savedNote = data[0];
+
+        setNotes((previousNotes) =>
+            previousNotes.map((note) =>
+                note.id === id
+                    ? {
+                        ...note,
+                        title: savedNote.title,
+                        content: savedNote.content,
+                        color: savedNote.color,
+                    }
+                    : note
+            )
+        );
+
+        return true;
+
+    } catch (error) {
+        console.error("Unable to connect to the server:", error);
+        return false;
+    }
+  }
 
   async function handleLogout() {
     try {
@@ -66,75 +188,55 @@ function App() {
       }
 
       setUser(null);
+      setNotes([]);
 
     } catch (error) {
       console.error("Unable to log out:", error);
     }
-  }
+  };
 
-  const [notes, setNotes] = useState([
-    {
-      id: 1,
-      title: "Game Idea",
-      content: "I want to explore a new story concept involving an eclipse and two opposing gods.",
-      date: "Today",
-      color: "#f3e0de",
-      isFavourite: false,
-      isTrashed: false
-    },
-    {
-      id: 2,
-      title: "Project Ideas",
-      content: "Look into some ideas for future projects and experiments with React.",
-      date: "Yesterday",
-      color: "#e9e2f2",
-      isFavourite: false,
-      isTrashed: false
-    },
-    {
-      id: 3,
-      title: "Things to Remember",
-      content: "Don't forget to finish the dashboard design before moving on to the backend.",
-      date: "Nov 7",
-      color: "#e3ebdd",
-      isFavourite: false,
-      isTrashed: false
-    },
-    {
-      id: 4,
-      title: "Weekend Plans",
-      content: "Work on Private Notes and maybe spend some time working on a game.",
-      date: "Nov 6",
-      color: "#dfeaf2",
-      isFavourite: false,
-      isTrashed: false
-     }
-  ]);
-
-  const handleSaveNote = (newNote) => {
-    const noteWithDetails = {
-      id: Date.now(),
-        ...newNote,
-        date: new Date().toLocaleDateString(),
-        isFavourite: false,
-        isTrashed: false
-    };
+  async function handleToggleFavourite(id) {
+    const note = notes.find((note) => note.id === id); 
         
-    setNotes((previousNotes) => [
-        ...previousNotes,
-        noteWithDetails
-      ]);
-    };
+    if (!note) return;
 
-    const handleToggleFavourite = (id) => {
+    const newFavouriteStatus = !note.isFavourite;
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          is_favourite: newFavouriteStatus,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Unable to update favourite:", data.error);
+        return;
+      }
+
+      const updatedNote = data[0];
+
       setNotes((previousNotes) => 
-        previousNotes.map((note) => 
+        previousNotes.map((note) =>
           note.id === id
-            ? { ...note, isFavourite: !note.isFavourite }
+            ? {
+              ...note,
+              isFavourite: updatedNote.is_favourite,
+            }
             : note
-        )
-      );
-    };
+          )
+        );
+    } catch (error) {
+      console.error("Unable to connect to the server:", error);
+    }
+  }
 
     const handleMoveToTrash = (id) => {
       console.log("Moving note to trash", id);
@@ -180,6 +282,7 @@ function App() {
                 onToggleFavourite={handleToggleFavourite}
                 onMoveToTrash={handleMoveToTrash}
                 onLogout={handleLogout}
+                onUpdateNote={handleUpdateNote}
               />
             </ProtectedRoute>
           }

@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faRotateLeft, faPen, } from "@fortawesome/free-solid-svg-icons";
 
-function NoteCard({ title, content, date, color, isFavourite, onToggleFavourite, onMoveToTrash, isTrashed = false, onRestore, onDelete }) {
+function NoteCard({ title, content, date, color, isFavourite, onToggleFavourite, onMoveToTrash, onEdit, isTrashed = false, onRestore, onDelete }) {
     return (
         <article
             className="min-h-52 rounded-2xl p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
@@ -35,6 +35,15 @@ function NoteCard({ title, content, date, color, isFavourite, onToggleFavourite,
                         </>
                     ) : (
                         <>
+                            <button
+                                type="button"
+                                onClick={onEdit}
+                                className="text-[#8a625a] hover:scale-110 transition-transform"
+                                aria-label="Edit note"
+                            >
+                                <FontAwesomeIcon icon={faPen} />
+                            </button>
+                            
                             <button
                                 type="button"
                                 onClick={onToggleFavourite}

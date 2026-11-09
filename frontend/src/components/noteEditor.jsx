@@ -6,24 +6,27 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ColorPicker from "./reusable-component/colorPicker";
 
-function NoteEditor({ onClose, onSave }) {
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
-    const [selectedColor, setSelectedColor] = useState("#f3ebdd");
+function NoteEditor({ onClose, onSave, note = null }) {
+    const [title, setTitle] = useState(note?.title || "");
+    const [content, setContent] = useState(note?.content || "");
+    const [selectedColor, setSelectedColor] = useState(note?.color || "#f3ebdd");
 
-    const newNote = {
+    const updatedNote = {
         title,
         content,
         color: selectedColor
     };
 
-    function handleSave() {
+    async function handleSave() {
         if (!title.trim() || !content.trim()) {
             return;
         }
 
-        onSave(newNote);
-        onClose();
+        const saved = await onSave(updatedNote);
+
+        if (saved) {
+            onClose();
+        }
     }
 
     return (
@@ -31,7 +34,7 @@ function NoteEditor({ onClose, onSave }) {
             <div className="w-full max-w-xl rounded-2xl bg-[#fbf8f4] p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-[#5f5651]">
-                        Create a Note
+                        {note ? "Edit Note" : "Create a Note"}
                     </h2>
 
                     <button
@@ -88,7 +91,7 @@ function NoteEditor({ onClose, onSave }) {
                         className="flex items-center gap-2 rounded-lg bg-[#b58c83] px-4 py-2 text-white hover:bg-[#a77c73] transition-colors"
                     >
                         <span><FontAwesomeIcon icon={faFloppyDisk} /></span>
-                        <span>Save Note</span>
+                        <span>{note ? "Save Changes" : "Save Note"}</span>
                     </button>
                 </div>
             </div>

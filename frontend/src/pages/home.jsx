@@ -11,10 +11,11 @@ import CreateNoteCard from "../components/createNoteCard";
 import NoteEditor from "../components/noteEditor";
 
 
-function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash, onLogout }) {
+function Home({ notes, onSaveNote, onUpdateNote, onToggleFavourite, onMoveToTrash, onLogout }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedNote, setSelectedNote] = useState(null);
 
     const filteredNotes = notes.filter((note) => {
         const search = searchTerm.toLowerCase();
@@ -27,6 +28,19 @@ function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash, onLogout })
             )
         );
     });
+
+    async function handleSaveNote(updatedNote) {
+        if (selectedNote) {
+            return await onUpdateNote(selectedNote.id, updatedNote);
+        } else {
+            return await onSaveNote(updatedNote);
+        }
+    }
+
+    function handleEditNote(note) {
+        setSelectedNote(note);
+        setIsEditorOpen(true);
+    }
 
     return (
         <div className="flex min-h-screen bg-[#fbf8f4]">
@@ -99,6 +113,7 @@ function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash, onLogout })
                                     isFavourite={note.isFavourite}
                                     onToggleFavourite={() => onToggleFavourite(note.id)}
                                     onMoveToTrash={() => onMoveToTrash(note.id)}
+                                    onEdit={() => handleEditNote(note)}
                                 />
                             ))
                         ) : (
@@ -112,14 +127,21 @@ function Home({ notes, onSaveNote, onToggleFavourite, onMoveToTrash, onLogout })
                             </div>
                         )}
                         <CreateNoteCard
-                            onClick={() => setIsEditorOpen(true)}
+                            onClick={() => {
+                                setSelectedNote(null);
+                                setIsEditorOpen(true);
+                            }}
                         />
                     </div>
 
                     {isEditorOpen && (
                         <NoteEditor
-                            onClose={() => setIsEditorOpen(false)}
-                            onSave={onSaveNote}
+                            note={selectedNote}
+                            onClose={() => {
+                                setIsEditorOpen(false);
+                                setSelectedNote(null);
+                            }}
+                            onSave={handleSaveNote}
                         />
                     )}
                 </section>

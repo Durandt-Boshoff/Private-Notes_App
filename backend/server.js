@@ -143,7 +143,7 @@ app.get('/api/notes', authMiddleware, async (req, res) => {
 })
 
 app.post('/api/notes', authMiddleware, async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, color } = req.body;
 
     if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
@@ -155,7 +155,8 @@ app.post('/api/notes', authMiddleware, async (req, res) => {
             {
                 user_id: req.user.id,
                 title,
-                content
+                content,
+                color: color || '#f3ebdd'
             }
         ])
         .select();
@@ -169,18 +170,64 @@ app.post('/api/notes', authMiddleware, async (req, res) => {
 
 app.put('/api/notes/:id', authMiddleware, async (req, res) => {
     const { id } = req.params;
-    const { title, content } = req.body;
 
-    if (!title || !content) {
-        return res.status(400).json({ error: 'Title and content are required' });
+    const {
+        title,
+        content,
+        color,
+        is_favourite,
+        is_trashed
+    } = req.body;
+
+    const updates = {};
+
+    if (title !== undefined) {
+        if (typeof title !== 'string' || !title.trim()) {
+            return res.status(400).json({ error: 'Invalid title' });
+        }
+
+        updates.title = title.trim();
+    }
+
+    if (content !== undefined) {
+        if (typeof content !== 'string' || !content.trim()) {
+            return res.status(400).json({ error: 'Invalid content' });
+        }
+
+        updates.content = content;
+    }
+
+    if (color !== undefined) {
+        if (typeof color !== 'string' || !color.trim()) {
+            return res.status(400).json({ error: 'Invalid color' });
+        }
+
+        updates.color = color;
+    }
+
+    if (is_favourite !== undefined) {
+        if (typeof is_favourite !== 'boolean') {
+            return res.status(400).json({ error: 'Invalid favourite status' });
+        }
+
+        updates.is_favourite = is_favourite;
+    }
+
+    if (is_trashed !== undefined) {
+        if (typeof is_trashed !== 'boolean') {
+            return res.status(400).json({ error: 'Invalid trash status' });
+        }
+
+        updates.is_trashed = is_trashed;
+    }
+
+    if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No valid fields provided'});
     }
 
     const { data, error } = await req.supabase
         .from('notes')
-        .update({ 
-            title,
-            content
-        })
+        .update(updates)
         .eq('id', id)
         .select();
 
