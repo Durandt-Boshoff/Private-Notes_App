@@ -39,22 +39,41 @@ function App() {
 
         if (!response.ok) {
           setUser(null);
-          setNotes([]);
           return;
         }
 
           setUser(data);
+      } catch (error) {
+        console.error("Session check failed:", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-          const notesResponse = await fetch("http://localhost:3000/api/notes", {
-            method: "GET",
-            credentials: "include",
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setNotes([]);
+      return;
+    }
+
+    let isCurrent = true;
+
+    async function loadNotes() {
+      try {
+        const response = await fetch("http://localhost:3000/api/notes", {
+          method: "GET",
+          credentials: "include",
         });
 
-        if (!notesResponse.ok) {
+        if (!response.ok) {
           throw new Error("Unable to load notes.")
         }
 
-        const notesData = await notesResponse.json();
+        const notesData = await response.json();
 
         const formattedNotes = notesData.map((note) => ({
           id: note.id,
@@ -66,19 +85,21 @@ function App() {
           isTrashed: note.is_trashed,
         }));
 
-        setNotes(formattedNotes);
-
+        if (isCurrent) {
+          setNotes(formattedNotes);
+        }
       } catch (error) {
-        console.error("Session or notes loading failed:", error);
-        setUser(null);
-        setNotes([]);
-      } finally {
-        setIsLoading(false);
+        console.error("Notes loading failed:", error);
       }
     }
 
-    checkSession();
-  }, []);
+    loadNotes();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [user]);
+
 
   async function handleSaveNote(newNote) {
     try {
@@ -238,33 +259,126 @@ function App() {
     }
   }
 
-    const handleMoveToTrash = (id) => {
-      console.log("Moving note to trash", id);
 
-      setNotes((previousNotes) => 
+  const handleMoveToTrash = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ is_trashed: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Unable to move note to trash:", data.error);
+        return;
+      }
+
+      setNotes((previousNotes) =>
         previousNotes.map((note) =>
           note.id === id
-            ? {...note, isTrashed: true }
+            ? { ...note, isTrashed: data[0].is_trashed }
             : note
         )
       );
-    };
+    } catch (error) {
+      console.error("Unable to connect to the server:", error);
+    }
+  };
 
-    const handleRestoreNote = (id) => {
+  const handleRestoreNote = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ is_trashed: false }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Unable to restore note:", data.error);
+        return;
+      }
+
       setNotes((previousNotes) =>
         previousNotes.map((note) =>
           note.id === id
-              ? { ...note, isTrashed: false }
-              : note
+            ? { ...note, isTrashed: data[0].is_trashed }
+            : note
         )
       );
-    };
+    } catch (error) {
+      console.error("Unable to connect to the server:", error);
+    }
+  };
 
-    const handleDeleteNote = (id) => {
+  const handleDeleteNote = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Unable to delete note:", data.error);
+        return;
+      }
+
       setNotes((previousNotes) =>
         previousNotes.filter((note) => note.id !== id)
       );
-    };
+    } catch (error) {
+      console.error("Unable to connect to the server:", error);
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    const trashedNotes = notes.filter((note) => note.isTrashed);
+
+    if (trashedNotes.length === 0) return;
+
+    const results = await Promise.allSettled(
+      trashedNotes.map(async (note) => {
+        const response = await fetch(
+          `http://localhost:3000/api/notes/${note.id}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Unable to delete note");
+        }
+
+        return note.id;
+      })
+    );
+
+    const deletedIds = results
+      .filter((result) => result.status === "fulfilled")
+      .map((result) => result.value);
+
+    setNotes((previousNotes) =>
+      previousNotes.filter((note) => !deletedIds.includes(note.id))
+    );
+
+    results
+      .filter((result) => result.status === "rejected")
+      .forEach((result) => console.error(result.reason));
+  };
 
   return (
     <BrowserRouter>
@@ -310,11 +424,7 @@ function App() {
                 notes={notes}
                 onRestoreNote={handleRestoreNote}
                 onDeleteNote={handleDeleteNote}
-                onEmptyTrash={() => {
-                  setNotes((previousNotes) => 
-                    previousNotes.filter((note) => !note.isTrashed)
-                  );
-                }}
+                onEmptyTrash={handleEmptyTrash}
                 onLogout={handleLogout}
               />
             </ProtectedRoute>
