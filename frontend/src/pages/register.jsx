@@ -37,7 +37,7 @@ function Register() {
         }
 
         try {
-            const response = await fetch("http://localhost:3000/api/auth/signup", {
+            const response = await fetch("https://private-notes-app-8ytj.onrender.com/api/auth/signup", {
                 method: "POST",
                 headers: {
                     "content-Type": "application/json",

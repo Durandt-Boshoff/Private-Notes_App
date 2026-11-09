@@ -30,7 +30,7 @@ function App() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const response = await fetch("http://localhost:3000/api/auth/me", {
+        const response = await fetch("https://private-notes-app-8ytj.onrender.com/api/auth/me", {
           method: "GET",
           credentials: "include",
         });
@@ -64,7 +64,7 @@ function App() {
 
     async function loadNotes() {
       try {
-        const response = await fetch("http://localhost:3000/api/notes", {
+        const response = await fetch("https://private-notes-app-8ytj.onrender.com/api/notes", {
           method: "GET",
           credentials: "include",
         });
@@ -103,7 +103,7 @@ function App() {
 
   async function handleSaveNote(newNote) {
     try {
-      const response = await fetch("http://localhost:3000/api/notes", {
+      const response = await fetch("https://private-notes-app-8ytj.onrender.com/api/notes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +153,7 @@ function App() {
       if (!note) return false;
 
       try {
-        const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+        const response = await fetch(`https://private-notes-app-8ytj.onrender.com/api/notes/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -198,7 +198,7 @@ function App() {
 
   async function handleLogout() {
     try {
-      const response = await fetch("http://localhost:3000/api/auth/logout", {
+      const response = await fetch("https://private-notes-app-8ytj.onrender.com/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -224,7 +224,7 @@ function App() {
     const newFavouriteStatus = !note.isFavourite;
 
     try {
-      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+      const response = await fetch(`https://private-notes-app-8ytj.onrender.com/api/notes/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -262,7 +262,7 @@ function App() {
 
   const handleMoveToTrash = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+      const response = await fetch(`https://private-notes-app-8ytj.onrender.com/api/notes/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -292,7 +292,7 @@ function App() {
 
   const handleRestoreNote = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+      const response = await fetch(`https://private-notes-app-8ytj.onrender.com/api/notes/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -322,7 +322,7 @@ function App() {
 
   const handleDeleteNote = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/notes/${id}`, {
+      const response = await fetch(`https://private-notes-app-8ytj.onrender.com/api/notes/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -350,7 +350,7 @@ function App() {
     const results = await Promise.allSettled(
       trashedNotes.map(async (note) => {
         const response = await fetch(
-          `http://localhost:3000/api/notes/${note.id}`,
+          `https://private-notes-app-8ytj.onrender.com/api/notes/${note.id}`,
           {
             method: "DELETE",
             credentials: "include",
