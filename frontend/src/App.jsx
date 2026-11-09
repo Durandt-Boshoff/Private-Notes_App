@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import FavouriteNotes from "./pages/favouriteNotes";
 import Trash from "./pages/trash";
+import Register from "./pages/register";
+import Login from "./pages/login";
 
 function App() {
   const [notes, setNotes] = useState([
@@ -139,6 +141,20 @@ function App() {
                 );
               }}
             />
+          }
+        />
+
+        <Route
+          path="/register"
+          element={
+            <Register />
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <Login />
           }
         />
 
