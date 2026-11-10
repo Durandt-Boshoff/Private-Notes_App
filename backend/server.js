@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: "https://private-note-app.netlify.app",
     credentials: true
 }))
 
@@ -75,14 +75,14 @@ app.post('/api/auth/login', async (req, res) => {
     res.cookie('access_token', data.session.access_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/'
     });
 
     res.cookie('refresh_token', data.session.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/'
     });
 
@@ -110,13 +110,13 @@ app.post('/api/auth/logout', authMiddleware, async (req, res) => {
     res.clearCookie('access_token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/'
     });
     res.clearCookie('refresh_token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/'
     });
 
