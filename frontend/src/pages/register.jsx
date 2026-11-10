@@ -37,7 +37,7 @@ function Register() {
         }
 
         try {
-            const response = await fetch("https://private-notes-app-8ytj.onrender.com/api/auth/signup", {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/signup`, {
                 method: "POST",
                 headers: {
                     "content-Type": "application/json",
